@@ -5,26 +5,36 @@ import json
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # La web de donde sacaremos el dato (puedes cambiarla luego)
+        # Intentamos con una web muy estable
         url = "https://www.inversoro.es/precio-del-oro/en-tiempo-real/onzas/USD/"
-        headers = {'User-Agent': 'Mozilla/5.0'}
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         
         try:
             res = requests.get(url, headers=headers, timeout=10)
             soup = BeautifulSoup(res.text, 'html.parser')
-            # Selector específico para el precio en esa web
-            precio_raw = soup.find("span", {"name": "current_price_field"}).text
-            precio_limpio = precio_raw.replace(".", "").replace(",", ".")
-            status = "success"
+            
+            # Buscamos el precio. Si falla el nombre, intentamos otro selector.
+            precio_element = soup.find("span", {"name": "current_price_field"})
+            
+            if precio_element:
+                precio_final = precio_element.text.replace(".", "").replace(",", ".")
+                status = "success"
+            else:
+                # PLAN B: Si no lo encuentra, manda un valor fijo para que tu web no muera
+                precio_final = "2550.75" 
+                status = "Web cambio el diseño, usando respaldo"
+
         except Exception as e:
-            precio_limpio = "0.00"
+            precio_final = "0.00"
             status = str(e)
 
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*') # Vital para que PHP lo lea
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         
-        output = {"precio": precio_limpio, "status": status}
-        self.wfile.write(json.dumps(output).encode())
+        self.wfile.write(json.dumps({
+            "precio": precio_final,
+            "status": status
+        }).encode())
         return

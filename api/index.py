@@ -6,7 +6,7 @@ import json
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         # La web de donde sacaremos el dato (puedes cambiarla luego)
-        url = "https://www.inversoro.es/precio-del-oro/en-tiempo-real/onzas/USD/"
+        url = "https://www.inversoro.es/precio-del-oro/hoy/gramos/USD/#show-chart"
         headers = {'User-Agent': 'Mozilla/5.0'}
         
         try:
